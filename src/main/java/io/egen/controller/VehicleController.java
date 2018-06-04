@@ -41,7 +41,7 @@ public class VehicleController {
 
     @RequestMapping(method = RequestMethod.GET, value = "/{vin}",
                     produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Optional<Vehicle> findOne(@PathVariable("vin") String vin) {
+    public Vehicle findOne(@PathVariable("vin") String vin) {
         return vehicleService.findOne(vin);
     }
 

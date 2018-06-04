@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -43,12 +44,14 @@ public class VehicleServiceTest {
 	@MockBean
 	AlertRepository alertRepo;
 	
-	List<Vehicle> expected;
+	List<Vehicle> expectedVehicleList;
+	List<Alert> expectedAlertList;
 	
+	@SuppressWarnings("unchecked")
 	@Before
 	public void setup() {
-		expected = new ArrayList<Vehicle>();
-		
+		expectedVehicleList=new ArrayList<Vehicle>();
+		expectedAlertList = new ArrayList<Alert>();
 		Vehicle vehicle = new Vehicle();
 		vehicle.setMake("HONDA"); 
 		vehicle.setModel("ACCORD"); 
@@ -56,11 +59,37 @@ public class VehicleServiceTest {
 		vehicle.setRedlineRpm(5000); 
 		vehicle.setMaxFuelVolume(15); 
 		vehicle.setLastServiceDate(new Date().toString()); 
+		expectedVehicleList.add(vehicle);
 		
-		expected.add(vehicle);
+		Reading reading = new Reading();
+		reading.setLongitude((float) 41.803194);
+		reading.setLatitude((float) -88.14);
+		reading.setFuelVolume((float) 1.5);
+		reading.setCheckEngineLightOn(true);
+		reading.setCruiseControlOn(false);
+		reading.setEngineCoolantLow(true);
+		reading.setEngineHp(200);
+		reading.setEngineRpm(2800);
+		reading.setFrontLeft(34);
+		reading.setFrontRight(32);
+		reading.setRearLeft(28);
+		reading.setRearRight(20);
+		reading.setTimestamp(new Date());
+		reading.setVehicle(vehicle);
 		
-		Mockito.when(repository.findAll()).thenReturn(expected);
+		Alert alert = new Alert();
+		alert.setPriority("HIGH");
+		alert.setReason("Tire pressure high");
+		alert.setTimeStamp(new Date());
+		alert.setVehicle(vehicle);
+		alert.setReading(reading);
+		
+		expectedAlertList.add(alert);
+		
+		Mockito.when(repository.findAll()).thenReturn(expectedVehicleList);
 		Mockito.when(repository.findById(vehicle.getVin())).thenReturn(Optional.of(vehicle));
+		
+		Mockito.when(alertRepo.findByPriorityAndTimeStampGreaterThanOrderByTimeStampDesc("HIGH", new Date())).thenReturn(expectedAlertList);
 	}
 	
 	@After
@@ -76,11 +105,12 @@ public class VehicleServiceTest {
 		}
 		
 		
+		
 	}
 	@Test
 	public void findAll() {
 		List<Vehicle> results = vehicleService.findAll();
-		Assert.assertEquals(expected, results);
+		Assert.assertEquals(expectedVehicleList, results);
         
     }
 	
@@ -90,11 +120,20 @@ public class VehicleServiceTest {
 	@Test
 	public void findOne() {
 		// TODO Auto-generated method stub
-		Vehicle vehicle = vehicleService.findOne(expected.get(0).getVin()).get();
-		Assert.assertEquals(expected.get(0), vehicle);
+		Vehicle vehicle = vehicleService.findOne(expectedVehicleList.get(0).getVin());
+		Assert.assertEquals(expectedVehicleList.get(0), vehicle);
 	}
+	
+	@Test(expected=ResourceNotFoundException.class)
+	public void findOneNotFound() {
+		vehicleService.findOne("kvdshhfuad");
+	}
+	
 	@Test
-	public void findVehiclesWithHigh() {}
+	public void findVehiclesWithHigh() {
+		
+	}
+	
 	@Test
 	public void findVehicleReadings() {}
 	

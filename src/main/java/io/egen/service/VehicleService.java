@@ -1,7 +1,5 @@
 package io.egen.service;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -39,9 +37,13 @@ public class VehicleService {
 		repository.save(vehicle);
 		return vehicle;
 	}
-	public Optional<Vehicle> findOne(String vin) {
+	public Vehicle findOne(String vin) {
 		// TODO Auto-generated method stub
-		return repository.findById(vin);
+		Optional<Vehicle> vehicle = repository.findById(vin);
+		if(!vehicle.isPresent()) {
+			throw new ResourceNotFoundException();
+		}
+		return vehicle.get();
 	}
 	
 	public List<Vehicle> findVehiclesWithHigh() {
